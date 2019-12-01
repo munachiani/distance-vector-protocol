@@ -12,7 +12,7 @@ class Simplesocket:
         self.ip = ip
 
     def listen(self):
-        self.s.bind(('', port))
+        self.s.bind(('', self.port))
         self.s.listen()
         self.c, addr = self.s.accept()
         print(" Connected to: " + addr)
