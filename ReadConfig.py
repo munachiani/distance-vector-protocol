@@ -45,5 +45,6 @@ if __name__ == '__main__':
     ip, port = getServer(data, 0)
     # figure out the listen loop/callbacks...
     con = Simplesocket(1, ip, int(port) )
-    con.connect()
-    # con.listen()
+    con.connect()       #client side
+    # con.listen()      #server side
+    # con.close()
