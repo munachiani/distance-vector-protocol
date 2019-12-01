@@ -27,13 +27,13 @@ def getInfo(f):
 # how many server
 def getServers(f):
     s = f.readline(1)
-    return str(s)
+    return str(s) 
     # for i in range(0, int(s))
 
 # get server id = i
 def getServer(d, i):
     line = d[2+i]
-    # print(line)
+    print(line)
     bits = line.split(' ')
     # print(bits)
     ip = bits[1]
@@ -52,6 +52,6 @@ if __name__ == '__main__':
     con = Simplesocket(1, ip, int(port) )
     # con.connect()       #client side
     con.listen()      #server side
-    while getUserInput().equals(0):     pass
+    # while getUserInput().equals(0):     pass
 
     con.close()
