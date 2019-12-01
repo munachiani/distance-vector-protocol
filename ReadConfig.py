@@ -40,15 +40,18 @@ def getServer(d, i):
     port = bits[2]
     return ip, port
 
+def getUserInput():
+    return input("Enter a command: ")
 
 
 if __name__ == '__main__':
     config = openFile()
     data = getInfo(config)
-    ip, port = getServer(data, 0)
+    ip, port = getServer(data, 1)
     # figure out the listen loop/callbacks...
     con = Simplesocket(1, ip, int(port) )
-    con.connect()       #client side
+    # con.connect()       #client side
+    con.listen()      #server side
+    while getUserInput().equals(0):     pass
 
-    # con.listen()      #server side
-    # con.close()
+    con.close()

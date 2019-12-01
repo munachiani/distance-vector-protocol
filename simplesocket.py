@@ -22,6 +22,7 @@ class Simplesocket:
         self.c.send(msg.encode())
 
     def close(self):
+        print("Closing connection on: " + self.ip)
         self.c.close()
 
 
