@@ -42,7 +42,7 @@ def getServer(d, i):
 if __name__ == '__main__':
     config = openFile()
     data = getInfo(config)
-    ip, port = getServer(data, 2)
+    ip, port = getServer(data, 1)
     # figure out the listen loop/callbacks...
     # con = Simplesocket(1, ip, int(port) )
     # con.listen()
