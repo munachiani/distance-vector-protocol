@@ -7,6 +7,7 @@
 # todo class type for server, id, ip, port, costtoserver1
 
 import TopoServer
+from simplesocket import Simplesocket
 
 def openFile():
     file = open("config.txt", 'r')
@@ -15,15 +16,33 @@ def openFile():
 def printFile(f):
     print(f.read())
 
+def getInfo(f):
+    data = f.read()
+    # todo update this 8, to adapt to
+    #of servers => #of lines
+    lines = data.split("\n", 8)
+    return lines
+
 def getServers(f):
     s = f.readline(1)
     return str(s)
     # for i in range(0, int(s))
 
+def getServer(d, i):
+    line = d[2+i]
+    print(line)
+    bits = line.split(' ')
+    print(bits)
+    ip = bits[1]
+    port = bits[2]
+    return ip, port
 
 
 
 if __name__ == '__main__':
     config = openFile()
-    print("Servers in this config: " + getServers(config))
-    printFile(config)
+    data = getInfo(config)
+    ip, port = getServer(data, 2)
+    # figure out the listen loop/callbacks...
+    # con = Simplesocket(1, ip, int(port) )
+    # con.listen()
