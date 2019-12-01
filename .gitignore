@@ -1,2 +1,4 @@
 .idea
 *.pyc
+__pycache__/simplesocket.cpython-37.pyc
+__pycache__/TopoServer.cpython-37.pyc
