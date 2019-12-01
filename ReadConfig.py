@@ -33,9 +33,9 @@ def getServers(f):
 # get server id = i
 def getServer(d, i):
     line = d[2+i]
-    print(line)
+    # print(line)
     bits = line.split(' ')
-    print(bits)
+    # print(bits)
     ip = bits[1]
     port = bits[2]
     return ip, port
@@ -49,5 +49,6 @@ if __name__ == '__main__':
     # figure out the listen loop/callbacks...
     con = Simplesocket(1, ip, int(port) )
     con.connect()       #client side
+
     # con.listen()      #server side
     # con.close()

@@ -16,8 +16,9 @@ class Simplesocket:
         self.s.bind(('', self.port))
         self.s.listen()
         self.c, addr = self.s.accept()
-        print(" Connected to: " + str(addr) )
-        msg = 'Thank you for connecting to: ' + str(addr)
+        msg = 'Incoming connection from: ' + str(addr)
+        print(msg)
+        msg = 'Connection successful! yourIP: ' + str(addr)
         self.c.send(msg.encode())
 
     def close(self):
@@ -26,5 +27,6 @@ class Simplesocket:
 
     def connect(self):
         self.s.connect((self.ip, self.port))
-        print(self.s.recv(1024))
+        print( str(self.s.recv(1024) ))
+        self.s.send("Hello...".encode())
         self.s.close()
