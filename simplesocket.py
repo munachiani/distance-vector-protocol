@@ -10,13 +10,19 @@ class Simplesocket:
         self.port = port
         self.id = id
         self.ip = ip
-        self.s.bind(('', port))
 
     def listen(self):
+        self.s.bind(('', port))
         self.s.listen()
         self.c, addr = self.s.accept()
         print(" Connected to: " + addr)
-        self.c.send('Thank you for connecting')
+        self.c.send('Thank you for connecting'.encode())
 
     def close(self):
         self.c.close()
+
+
+    def connect(self):
+        self.s.connect((self.ip, self.port))
+        print(self.s.recv(1024))
+        self.s.close()
