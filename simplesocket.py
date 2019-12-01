@@ -15,7 +15,7 @@ class Simplesocket:
         self.s.bind(('', self.port))
         self.s.listen()
         self.c, addr = self.s.accept()
-        print(" Connected to: " + addr)
+        print(" Connected to: " + str(addr) )
         self.c.send('Thank you for connecting'.encode())
 
     def close(self):
