@@ -11,12 +11,14 @@ class Simplesocket:
         self.id = id
         self.ip = ip
 
+
     def listen(self):
         self.s.bind(('', self.port))
         self.s.listen()
         self.c, addr = self.s.accept()
         print(" Connected to: " + str(addr) )
-        self.c.send('Thank you for connecting'.encode())
+        msg = 'Thank you for connecting to: ' + str(addr)
+        self.c.send(msg.encode())
 
     def close(self):
         self.c.close()

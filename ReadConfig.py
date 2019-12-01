@@ -16,6 +16,7 @@ def openFile():
 def printFile(f):
     print(f.read())
 
+# return config file as list of lines
 def getInfo(f):
     data = f.read()
     # todo update this 8, to adapt to
@@ -23,11 +24,13 @@ def getInfo(f):
     lines = data.split("\n", 8)
     return lines
 
+# how many server
 def getServers(f):
     s = f.readline(1)
     return str(s)
     # for i in range(0, int(s))
 
+# get server id = i
 def getServer(d, i):
     line = d[2+i]
     print(line)
