@@ -11,14 +11,15 @@ class Simplesocket:
         self.id = id
         self.ip = ip
 
+# need to update to non blocking + selectors...
 
     def listen(self):
-        self.s.bind(('', self.port))
+        self.s.bind(('localhost', self.port))
         self.s.listen()
         self.c, addr = self.s.accept()
         msg = 'Incoming connection from: ' + str(addr)
         print(msg)
-        msg = 'Connection successful! yourIP: ' + str(addr)
+        msg = 'Connection successful! serverIP: ' + self.ip + ' yourIP: ' + str(addr)
         self.c.send(msg.encode())
 
     def close(self):
