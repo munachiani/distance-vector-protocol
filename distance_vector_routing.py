@@ -1,3 +1,7 @@
+import socket
+import threading
+import sys
+import logging
 
 
 def bellman_ford(graph, source):
@@ -7,8 +11,9 @@ def bellman_ford(graph, source):
         d[node] = float('inf')
         p[node] = None
 
+    # set distance to 0 because the source is 0 distance from itself
     d[source] = 0
-
+    # relax the edge V-1 times to find all the shortest path
     for _ in range(len(graph) - 1):
         for u in graph:
             for v in graph[u]:
@@ -19,13 +24,19 @@ def bellman_ford(graph, source):
     return d, p
 
 
+def request_listener(server):
+    while True:
+        request, _ = server.recvfrom(1024)
+        sys.stdout.write(f'>>>\n {request}')
+        sys.stdout.flush()
+
+
 def load_topology(filename):
     addresses, graph = {}, {}
     with open(filename, 'r') as topology:
         lines = topology.readlines()
         # print(lines)
         num_of_nodes = int(lines[0])
-        print(num_of_nodes)
 
         for node in range(num_of_nodes):
             graph.setdefault(node + 1, {})
@@ -46,8 +57,9 @@ def main():
     graph = {}
     running = False
     source_node = 0
+    server = None
 
-    print('Distance Vector Routing Protocols Emulator')
+    print(f'Start Server with: server -t <topology-file> -i  <routing-update-interval>')
 
     while True:
         response = input('>>> ').split()
@@ -69,6 +81,7 @@ def main():
                     continue
 
                 if command == 'crash':
+                    server.close()
                     return
                 elif command == 'display':
                     pass
@@ -86,8 +99,14 @@ def main():
                         if graph[node]:
                             source_node = node
                             break
+                    # Start the UDP server
+                    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    server.bind(addresses[source_node])
 
-                    print(f'Server is running on port {addresses[source_node][1]}, ip address is {addresses[source_node][0]}')
+                    thread = threading.Thread(target=request_listener, args=(server,), daemon=True)
+                    thread.start()
+
+                    print(f'Server running...')
                     running = True
                 else:
                     print('Server is not running. Start it by typing:')
