@@ -1,10 +1,12 @@
 import socket
+import sys
 import threading
 import json
 import logging
 import time
 
 packet_count = 0
+shutdown = False
 
 
 def bellman_ford(graph, source):
@@ -49,11 +51,27 @@ def load_topology(filename):
 
 
 def request_listener(server, graph):
-    global packet_count
-    while True:
-        request, message = server.recvfrom(1024)[0].split('|')
+    global packet_count, shutdown
 
-        if request == 'update':
+    while True:
+        request, message = str(server.recvfrom(1024)[0]).split('|')
+
+        # close connections and update graph
+        if request == 'crash':
+            target_node = int(message)
+
+            for node in graph:
+                if target_node in graph[node]:
+                    del graph[node][target_node]
+
+            del graph[target_node]
+        elif request == 'shutdown':
+            sys.stdout.write('\nA neighboring server closed this terminal.\n'
+                             'Hit enter to close down.')
+            sys.stdout.flush()
+            shutdown = True
+        # update routing information using hashmap
+        elif request == 'update':
             loaded = json.loads(message)
             str_source_id = loaded.keys()[0]
             source_id = int(str_source_id)
@@ -63,11 +81,12 @@ def request_listener(server, graph):
             if len(items) == 1:
                 destination_id, cost = int(items[0][0]), float(items[0][1])
 
-                graph[source_id][destination_id] = cost
-                graph[destination_id][source_id] = cost
+                graph.setdefault(source_id, {})[destination_id] = cost
+                graph.setdefault(destination_id, {})[source_id] = cost
             else:
                 for destination_id, cost in items:
-                    graph[source_id][int(destination_id)] = cost
+                    graph.setdefault(source_id, {})[int(destination_id)] = cost
+
         packet_count += 1
 
 
@@ -81,10 +100,13 @@ def routinely_update_neighbors(server, graph, source, addresses, frequency):
 
 
 def neighbours_update(server, source, addresses, mapping):
-    for address_id in addresses:
-        if address_id != source:
-            message = 'update|' + json.dumps(mapping)
-            server.sendto(message.encode('utf-8'), addresses[address_id])
+    try:
+        for address_id in addresses:
+            if address_id != source:
+                message = 'update|' + json.dumps(mapping)
+                server.sendto(message.encode('utf-8'), addresses[address_id])
+    except socket.error:
+        pass
 
 
 def main():
@@ -106,7 +128,12 @@ def main():
 
             if running:
                 if command == 'disable' and len(response) == 2:
-                    pass
+                    node = int(response[1])
+
+                    if node in graph[source_node]:
+                        server.sendto('shutdown|'.encode('utf-8'), addresses[node])
+
+                    continue
                 elif command == 'disable':
                     print('disable <server-id>')
                     continue
@@ -170,8 +197,7 @@ def main():
 
                     routinely_update = threading.Thread(target=routinely_update_neighbors,
                                                         args=(server, graph, source_node,
-                                                              addresses, int(response[4])))
-                    routinely_update.daemon = True
+                                                              addresses, int(response[4])), daemon=True)
                     routinely_update.start()
 
                     listener = threading.Thread(target=request_listener, args=(server, graph), daemon=True)
