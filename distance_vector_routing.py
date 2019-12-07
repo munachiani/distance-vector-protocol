@@ -55,14 +55,13 @@ def request_listener(server, graph):
 
         if request == 'update':
             loaded = json.loads(message)
-            logging.info(f'<<<<<{loaded}>>>>>')
             str_source_id = loaded.keys()[0]
             source_id = int(str_source_id)
 
             items = loaded[str_source_id].items()
 
             if len(items) == 1:
-                destination_id, cost = int(items[0][0]), int(items[0][1])
+                destination_id, cost = int(items[0][0]), float(items[0][1])
 
                 graph[source_id][destination_id] = cost
                 graph[destination_id][source_id] = cost
