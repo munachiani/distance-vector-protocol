@@ -71,6 +71,15 @@ def request_listener(server, graph):
         packet_count += 1
 
 
+# routing updates based on a time interval
+def routinely_update_neighbors(server, graph, source, addresses, frequency):
+    while True:
+        neighbours_update(server, source, addresses, {
+            source: graph[source]
+        })
+        time.sleep(frequency)
+
+
 def neighbours_update(server, source, addresses, mapping):
     for address_id in addresses:
         if address_id != source:
@@ -79,7 +88,6 @@ def neighbours_update(server, source, addresses, mapping):
 
 
 def main():
-
     global packet_count
 
     addresses = {}
@@ -159,6 +167,12 @@ def main():
                     # Start the UDP server
                     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     server.bind(addresses[source_node])
+
+                    routinely_update = threading.Thread(target=routinely_update_neighbors,
+                                                        args=(server, graph, source_node,
+                                                              addresses, int(response[4])))
+                    routinely_update.daemon = True
+                    routinely_update.start()
 
                     listener = threading.Thread(target=request_listener, args=(server, graph), daemon=True)
                     listener.start()
