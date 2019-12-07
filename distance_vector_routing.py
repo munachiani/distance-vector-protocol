@@ -1,7 +1,7 @@
 import socket
 import threading
-import sys
-import logging
+import json
+import time
 
 
 def bellman_ford(graph, source):
@@ -24,13 +24,6 @@ def bellman_ford(graph, source):
     return d, p
 
 
-def request_listener(server):
-    while True:
-        request, _ = server.recvfrom(1024)
-        sys.stdout.write(f'>>>\n {request}')
-        sys.stdout.flush()
-
-
 def load_topology(filename):
     addresses, graph = {}, {}
     with open(filename, 'r') as topology:
@@ -50,6 +43,13 @@ def load_topology(filename):
                 graph[tokens[0]][tokens[1]] = tokens[2]
 
     return addresses, graph
+
+
+def request_listener(server, graph):
+    while True:
+        request, message = server.recvfrom(1024)[0].split('|')
+        print(f'request: {request}')
+        print(f'request: {message}')
 
 
 def main():
@@ -75,7 +75,20 @@ def main():
                     continue
 
                 if command == 'update' and len(response) == 4:
-                    pass
+                    source_id = int(response[1])
+                    destination_id = int(response[2])
+                    cost = int(response[3])
+
+                    # Update table locally
+                    graph[source_id][destination_id] = cost
+                    graph[destination_id][source_id] = cost
+
+                    neighbour_update(server, source_node, addresses, {
+                        source_id: {destination_id: cost}
+                    })
+
+                    continue
+
                 elif command == 'update':
                     print('update <server-id-1> <server-id-2> <cost>')
                     continue
@@ -83,8 +96,14 @@ def main():
                 if command == 'crash':
                     server.close()
                     return
+                # display and sort thr current table
                 elif command == 'display':
-                    pass
+                    distance_vector, hops = bellman_ford(graph, source_node)
+
+                    for node in distance_vector:
+                        if distance_vector[node] != 0:
+                            next_hop = str(hops[node]) if hops[node] else 'none'
+                            print(f'{node} {next_hop} {distance_vector[node]}')
                 elif command == 'packets':
                     print(0)
                 elif command == 'step':
@@ -92,6 +111,7 @@ def main():
                 else:
                     print(f'{command} is not a valid command.')
             else:
+                # load the topology
                 if command == 'server' and len(response) == 5:
                     addresses, graph = load_topology(response[2])
 
@@ -103,8 +123,8 @@ def main():
                     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     server.bind(addresses[source_node])
 
-                    thread = threading.Thread(target=request_listener, args=(server,), daemon=True)
-                    thread.start()
+                    listener = threading.Thread(target=request_listener, args=(server, graph), daemon=True)
+                    listener.start()
 
                     print(f'Server running...')
                     running = True
