@@ -140,8 +140,12 @@ def main():
                     print(f'Packets received: {packet_count}')
                     packet_count = 0
                     print(f'\n {command} SUCCESS')
+                #     update neighbours right away
                 elif command == 'step':
-                    pass
+                    neighbours_update(server, source_node, addresses, {
+                        source_node: graph[source_node]
+                    })
+                    print(f'\n {command} SUCCESS')
                 else:
                     print(f'{command} is not a valid command.')
             else:
