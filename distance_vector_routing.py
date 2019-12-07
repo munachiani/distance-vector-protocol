@@ -103,7 +103,8 @@ def main():
                     for node in distance_vector:
                         if distance_vector[node] != 0:
                             next_hop = str(hops[node]) if hops[node] else 'none'
-                            print(f'{node} {next_hop} {distance_vector[node]}')
+                            print(f'{node:^10} {next_hop:^10} {distance_vector[node]:^10}')
+                    print(f'\n {command} SUCCESS')
                 elif command == 'packets':
                     print(0)
                 elif command == 'step':
