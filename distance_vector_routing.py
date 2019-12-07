@@ -1,7 +1,10 @@
 import socket
 import threading
 import json
+import logging
 import time
+
+packet_count = 0
 
 
 def bellman_ford(graph, source):
@@ -46,13 +49,40 @@ def load_topology(filename):
 
 
 def request_listener(server, graph):
+    global packet_count
     while True:
         request, message = server.recvfrom(1024)[0].split('|')
-        print(f'request: {request}')
-        print(f'request: {message}')
+
+        if request == 'update':
+            loaded = json.loads(message)
+            logging.info(f'<<<<<{loaded}>>>>>')
+            str_source_id = loaded.keys()[0]
+            source_id = int(str_source_id)
+
+            items = loaded[str_source_id].items()
+
+            if len(items) == 1:
+                destination_id, cost = int(items[0][0]), int(items[0][1])
+
+                graph[source_id][destination_id] = cost
+                graph[destination_id][source_id] = cost
+            else:
+                for destination_id, cost in items:
+                    graph[source_id][int(destination_id)] = cost
+        packet_count += 1
+
+
+def neighbours_update(server, source, addresses, mapping):
+    for address_id in addresses:
+        if address_id != source:
+            message = 'update|' + json.dumps(mapping)
+            server.sendto(message.encode('utf-8'), addresses[address_id])
 
 
 def main():
+
+    global packet_count
+
     addresses = {}
     graph = {}
     running = False
@@ -77,16 +107,16 @@ def main():
                 if command == 'update' and len(response) == 4:
                     source_id = int(response[1])
                     destination_id = int(response[2])
-                    cost = int(response[3])
+                    cost = float(response[3])
 
                     # Update table locally
                     graph[source_id][destination_id] = cost
                     graph[destination_id][source_id] = cost
 
-                    neighbour_update(server, source_node, addresses, {
+                    neighbours_update(server, source_node, addresses, {
                         source_id: {destination_id: cost}
                     })
-
+                    print(f'\n {command} SUCCESS')
                     continue
 
                 elif command == 'update':
@@ -103,9 +133,13 @@ def main():
                     for node in distance_vector:
                         if distance_vector[node] != 0:
                             next_hop = str(hops[node]) if hops[node] else 'none'
-                            print(f'{node} {next_hop} {distance_vector[node]}')
+                            print(f'{node:^10} {next_hop:^10} {distance_vector[node]:^10}')
+                    print(f'\n {command} SUCCESS')
+                #     display the number of packets the server has received
                 elif command == 'packets':
-                    print(0)
+                    print(f'Packets received: {packet_count}')
+                    packet_count = 0
+                    print(f'\n {command} SUCCESS')
                 elif command == 'step':
                     pass
                 else:
